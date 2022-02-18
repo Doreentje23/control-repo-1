@@ -12,13 +12,31 @@ class jenkins::install(
   $java_package = "java-${javaversion}-openjdk-devel"
 
 # apt repo
-  apt::source { 'jenkins-repo':
-  ensure   => present,
-  enable   => true,
-  comment  => 'This is the apt source for the jenkins repo',
-  location => 'https://pkg.jenkins.io/debian-stable binary/',
-  key      => 0,
+case $facts['osfamily'] {
+  'Debian': {
+    apt::source{ 'jenkins-repo':
+      ensure   => present,
+      enable   => true,
+      comment  => 'This is the apt source for the jenkins repo',
+      location => 'https://pkg.jenkins.io/debian-stable binary/',
+      key      => 0,
+    }
   }
+
+  'Redhat': {
+    yumrepo{'jenkins-repo':
+      ensure   => present,
+      enabled  => 1,
+      descr    =>'Jenkins yum repo',
+      baseurl  => 'https://pkg.jenkins.io/redhat/jenkins.repo',
+      gpgcheck => 0,
+    }
+
+  }
+  default: {
+    fail('unsupported OS for this jenkins module')
+  }
+}
 
 # Install Jenkins repo  
   package {'java':
@@ -28,7 +46,7 @@ class jenkins::install(
 
   package {'jenkins':
     ensure  => present,
-    require => Package['java']
+    require => [Package['java'], Apt['jenkins-repo'], Yumrepo['jenkins-repo']]
   }
 }
 
