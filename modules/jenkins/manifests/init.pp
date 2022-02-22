@@ -4,12 +4,14 @@
 #
 # @example
 #   include jenkins
-class jenkins {
+class jenkins(
+   String $jenkinsport,
+) {
   contains jenkins::install
-  contains jenkins::configure
+  contains jenkins::config
   contains jenkins::service
 
   Class['jenkins::install']
-  -> Class ['jenkins::configure']
+  -> Class ['jenkins::config']
   ~> Class['jenkins::service']
 }
